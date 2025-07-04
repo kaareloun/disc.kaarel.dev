@@ -129,7 +129,7 @@ function Home() {
           <AlertDescription>{notification}</AlertDescription>
         </Alert>
       )}
-      <div className="p-2">
+      <div className="p-2 flex flex-col h-screen">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
           <div className="flex flex-col p-2 gap-2">
             <h1 className="sm:text-3xl text-2xl font-bold">
@@ -149,55 +149,60 @@ function Home() {
             />
           </div>
         </div>
-        <Table className="border-separate border-spacing-y-0 relative">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Starts</TableHead>
-              <TableHead>Distance</TableHead>
-              <TableHead>Description</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCompetitions.map((competition, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <a
-                    className="font-bold hover:underline"
-                    href={`https://discgolfmetrix.com/${competition.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span
-                      dangerouslySetInnerHTML={{ __html: competition.name }}
-                    />
-                  </a>
-                </TableCell>
-                <TableCell>
-                  <span
-                    dangerouslySetInnerHTML={{ __html: competition.courseName }}
-                  />
-                </TableCell>
-                <TableCell>
-                  {format(competition.startsAt, "yyyy-MM-dd HH:mm")}
-                </TableCell>
-                <TableCell>
-                  {filters.location
-                    ? `${(competition.distance / 1000).toFixed(0)} km`
-                    : "Unknown"}
-                </TableCell>
-                <TableCell>
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: competition.description,
-                    }}
-                  />
-                </TableCell>
+        <div className="flex-1">
+          <Table className="border-separate border-spacing-y-0 relative">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Start</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Course</TableHead>
+                <TableHead>Distance</TableHead>
+                <TableHead>Description</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredCompetitions.map((competition, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    {format(competition.startsAt, "yyyy-MM-dd HH:mm")}
+                  </TableCell>
+
+                  <TableCell>
+                    <a
+                      className="font-bold hover:underline"
+                      href={`https://discgolfmetrix.com/${competition.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span
+                        dangerouslySetInnerHTML={{ __html: competition.name }}
+                      />
+                    </a>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: competition.courseName,
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {filters.location
+                      ? `${(competition.distance / 1000).toFixed(0)} km`
+                      : "Unknown"}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: competition.description,
+                      }}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </>
   );
