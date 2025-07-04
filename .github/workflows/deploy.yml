@@ -20,7 +20,6 @@ jobs:
             git pull
             bun install
             bun run build
-            pm2 reload disc.kaarel.dev
             if pm2 describe disc.kaarel.dev > /dev/null 2>&1; then
               pm2 reload disc.kaarel.dev
             else
