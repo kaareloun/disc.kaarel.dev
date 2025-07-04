@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { TZDate } from "@date-fns/tz";
+import { add } from "date-fns";
 
 export const validateDGMetrixCompetitionsData = z
   .array(
@@ -32,12 +34,9 @@ export const validateDGMetrixCompetitionsData = z
 
       const [month, day, year] = date.split("\/").map(Number);
       const [hours, minutes] = time.split(":").map(Number);
-      const startsAt = new Date(
-        Number(`20${year}`),
-        month - 1,
-        day,
-        hours,
-        minutes,
+      const startsAt = add(
+        new TZDate(Number(`20${year}`), month - 1, day, "Europe/Tallinn"),
+        { hours, minutes },
       );
 
       res.push({
