@@ -1,10 +1,7 @@
 module.exports = {
   name: "disc.kaarel.dev",
-  script: "bun",
-  args: "run start",
-  interpreter: "bun",
+  script: ".output/server/index.mjs",
   env: {
-    PATH: `${process.env.HOME}/.bun/bin:${process.env.PATH}`,
     PORT: 3002,
   },
 };
