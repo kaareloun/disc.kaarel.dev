@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { getDistance } from "geolib";
 import { getUserLocation } from "~/serverFunctions/getUserLocation";
 import Cookies from "js-cookie";
-import { LOCATION_COOKIE } from "~/constants";
+import { LOCATION_COOKIE, SEARCH_RADIUS } from "~/constants";
 import { Input } from "~/components/ui/input";
 import { CompetitionWithDistance } from "~/types";
 
@@ -95,7 +95,7 @@ function Home() {
           return false;
         }
 
-        return competition.distance <= 50000; // 50km
+        return competition.distance <= SEARCH_RADIUS;
       });
 
     return filtered;
@@ -145,7 +145,16 @@ function Home() {
           {filteredCompetitions.map((competition, i) => (
             <TableRow key={i}>
               <TableCell>
-                <span dangerouslySetInnerHTML={{ __html: competition.name }} />
+                <a
+                  className="font-bold hover:underline"
+                  href={`https://discgolfmetrix.com/${competition.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span
+                    dangerouslySetInnerHTML={{ __html: competition.name }}
+                  />
+                </a>
               </TableCell>
               <TableCell>
                 <span
