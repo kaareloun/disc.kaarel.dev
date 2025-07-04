@@ -21,3 +21,8 @@ jobs:
             bun install
             bun run build
             pm2 reload disc.kaarel.dev
+            if pm2 describe disc.kaarel.dev > /dev/null 2>&1; then
+              pm2 reload disc.kaarel.dev
+            else
+              pm2 start pm2.config.js
+            fi
