@@ -6,3 +6,11 @@ export type CompetitionWithDistance = z.infer<
 >[number] & {
   distance: number;
 };
+
+export type Filters = {
+  search: string;
+  location: {
+    lat: number;
+    lon: number;
+  } | null;
+};

@@ -16,16 +16,18 @@ import { getUserLocation } from "~/serverFunctions/getUserLocation";
 import Cookies from "js-cookie";
 import { LOCATION_COOKIE, SEARCH_RADIUS } from "~/constants";
 import { Input } from "~/components/ui/input";
-import { CompetitionWithDistance } from "~/types";
+import { CompetitionWithDistance, Filters } from "~/types";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 
 export const Route = createFileRoute("/")({
   component: Home,
   loader: async () => {
-    const [competitions, lastUpdate, userLocation] = await Promise.all([
+    const [competitions, userLocation] = await Promise.all([
       getCompetitions(),
-      getLastUpdate(),
       getUserLocation(),
     ]);
+
+    const lastUpdate = await getLastUpdate();
 
     return {
       competitions,
@@ -42,39 +44,49 @@ function Home() {
     userLocation: initialUserLocation,
   } = Route.useLoaderData();
 
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lon: number;
-  } | null>(initialUserLocation);
+  const [notification, setNotification] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const newPos = {
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        };
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const newPos = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          };
 
-        setUserLocation(newPos);
-        Cookies.set(LOCATION_COOKIE, JSON.stringify(newPos));
-      });
+          Cookies.set(LOCATION_COOKIE, JSON.stringify(newPos));
+          updateFilters({
+            ...filters,
+            location: newPos,
+          });
+          setNotification(null);
+        },
+        () =>
+          setNotification(
+            filters.location
+              ? "Couldn't refresh your location, using the last saved one."
+              : "Couldn't get your location. Showing all available competitions for now.",
+          ),
+      );
     }
   }, []);
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     search: "",
+    location: initialUserLocation,
   });
 
-  const filterCompetitions = (filters: { search: string }) => {
+  const filterCompetitions = (filters: Filters) => {
     const lowerCaseValue = filters.search.toLowerCase();
 
     const filtered: CompetitionWithDistance[] = competitions
       .map((competition) => {
-        const distance = userLocation
+        const distance = filters.location
           ? getDistance(
               {
-                latitude: userLocation.lat,
-                longitude: userLocation.lon,
+                latitude: filters.location.lat,
+                longitude: filters.location.lon,
               },
               { latitude: competition.lat, longitude: competition.lon },
             )
@@ -103,83 +115,90 @@ function Home() {
 
   const [filteredCompetitions, setFilteredCompetitions] = useState<
     CompetitionWithDistance[]
-  >(filterCompetitions({ search: "" }));
+  >(filterCompetitions(filters));
 
-  const updateFilters = (filters: { search: string }) => {
+  const updateFilters = (filters: Filters) => {
     setFilters(filters);
     setFilteredCompetitions(filterCompetitions(filters));
   };
 
   return (
-    <div className="p-2">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
-        <div className="flex flex-col p-2 gap-2">
-          <h1 className="sm:text-3xl text-2xl font-bold">
-            Disc golf competitions near you
-          </h1>
-          <span className="text-xs font-bold tracking-widest">
-            Last update {lastUpdate}
-          </span>
+    <>
+      {notification && (
+        <Alert variant="info">
+          <AlertDescription>{notification}</AlertDescription>
+        </Alert>
+      )}
+      <div className="p-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
+          <div className="flex flex-col p-2 gap-2">
+            <h1 className="sm:text-3xl text-2xl font-bold">
+              Disc golf competitions near you
+            </h1>
+            <span className="text-xs font-bold tracking-widest">
+              Last update {lastUpdate}
+            </span>
+          </div>
+          <div className="flex flex-col p-2 gap-2 w-full sm:w-auto">
+            <Input
+              className="w-full max-w-md"
+              placeholder="Filter"
+              onChange={(e) =>
+                updateFilters({ ...filters, search: e.target.value })
+              }
+            />
+          </div>
         </div>
-        <div className="flex flex-col p-2 gap-2 w-full sm:w-auto">
-          <Input
-            className="w-full max-w-md"
-            placeholder="Filter"
-            onChange={(e) =>
-              updateFilters({ ...filters, search: e.target.value })
-            }
-          />
-        </div>
-      </div>
-      <Table className="border-separate border-spacing-y-0 relative">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Course</TableHead>
-            <TableHead>Starts</TableHead>
-            <TableHead>Distance</TableHead>
-            <TableHead>Description</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredCompetitions.map((competition, i) => (
-            <TableRow key={i}>
-              <TableCell>
-                <a
-                  className="font-bold hover:underline"
-                  href={`https://discgolfmetrix.com/${competition.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <span
-                    dangerouslySetInnerHTML={{ __html: competition.name }}
-                  />
-                </a>
-              </TableCell>
-              <TableCell>
-                <span
-                  dangerouslySetInnerHTML={{ __html: competition.courseName }}
-                />
-              </TableCell>
-              <TableCell>
-                {format(competition.startsAt, "yyyy-MM-dd HH:mm")}
-              </TableCell>
-              <TableCell>
-                {userLocation
-                  ? `${(competition.distance / 1000).toFixed(0)} km`
-                  : "Unknown"}
-              </TableCell>
-              <TableCell>
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: competition.description,
-                  }}
-                />
-              </TableCell>
+        <Table className="border-separate border-spacing-y-0 relative">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Course</TableHead>
+              <TableHead>Starts</TableHead>
+              <TableHead>Distance</TableHead>
+              <TableHead>Description</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {filteredCompetitions.map((competition, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <a
+                    className="font-bold hover:underline"
+                    href={`https://discgolfmetrix.com/${competition.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span
+                      dangerouslySetInnerHTML={{ __html: competition.name }}
+                    />
+                  </a>
+                </TableCell>
+                <TableCell>
+                  <span
+                    dangerouslySetInnerHTML={{ __html: competition.courseName }}
+                  />
+                </TableCell>
+                <TableCell>
+                  {format(competition.startsAt, "yyyy-MM-dd HH:mm")}
+                </TableCell>
+                <TableCell>
+                  {filters.location
+                    ? `${(competition.distance / 1000).toFixed(0)} km`
+                    : "Unknown"}
+                </TableCell>
+                <TableCell>
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: competition.description,
+                    }}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }
