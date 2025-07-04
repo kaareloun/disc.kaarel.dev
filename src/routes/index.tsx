@@ -133,7 +133,7 @@ function Home() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
           <div className="flex flex-col p-2 gap-2">
             <h1 className="sm:text-3xl text-2xl font-bold">
-              Disc golf competitions near you
+              Nearby Disc golf competitions
             </h1>
             <span className="text-xs font-bold tracking-widest">
               Last update {lastUpdate}

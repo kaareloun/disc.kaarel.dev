@@ -1,3 +1,3 @@
 # disc.kaarel.dev
 
-Displays a list of discgolfmetrix competitions near you.
+Displays a list of nearby discgolfmetrix competitions.
