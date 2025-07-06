@@ -28,7 +28,7 @@ export const validateDGMetrixCompetitionsData = z
         date,
         time,
         competitionType,
-        courseName,
+        courseAndLayout,
         description,
       ] = row;
 
@@ -39,6 +39,9 @@ export const validateDGMetrixCompetitionsData = z
         { hours, minutes },
       );
 
+      const [courseName, layoutName] = courseAndLayout.split(" &rarr; ");
+      const descriptionWithoutHtml = description.replace(/<[^>]*>/g, "");
+
       res.push({
         id,
         name,
@@ -47,7 +50,8 @@ export const validateDGMetrixCompetitionsData = z
         startsAt,
         competitionType,
         courseName,
-        description,
+        layoutName,
+        description: descriptionWithoutHtml,
       });
     }
 

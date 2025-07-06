@@ -102,6 +102,7 @@ function Home() {
           filters.search &&
           !competition.name.toLowerCase().includes(lowerCaseValue) &&
           !competition.courseName.toLowerCase().includes(lowerCaseValue) &&
+          !competition.layoutName.toLowerCase().includes(lowerCaseValue) &&
           !competition.description.toLowerCase().includes(lowerCaseValue)
         ) {
           return false;
@@ -191,7 +192,7 @@ function Home() {
                       ? `${(competition.distance / 1000).toFixed(0)} km`
                       : "Unknown"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <span
                       dangerouslySetInnerHTML={{
                         __html: competition.description,
