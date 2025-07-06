@@ -16,7 +16,7 @@ import { getUserLocation } from "~/serverFunctions/getUserLocation";
 import Cookies from "js-cookie";
 import { LOCATION_COOKIE, SEARCH_RADIUS } from "~/constants";
 import { Input } from "~/components/ui/input";
-import { CompetitionWithDistance, Filters } from "~/types";
+import type { CompetitionWithDistance, Filters } from "~/types";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 
 export const Route = createFileRoute("/")({
@@ -102,7 +102,7 @@ function Home() {
           filters.search &&
           !competition.name.toLowerCase().includes(lowerCaseValue) &&
           !competition.courseName.toLowerCase().includes(lowerCaseValue) &&
-          !competition.layoutName.toLowerCase().includes(lowerCaseValue) &&
+          !competition.layoutName?.toLowerCase().includes(lowerCaseValue) &&
           !competition.description.toLowerCase().includes(lowerCaseValue)
         ) {
           return false;

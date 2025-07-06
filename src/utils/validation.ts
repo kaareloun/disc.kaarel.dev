@@ -35,7 +35,12 @@ export const validateDGMetrixCompetitionsData = z
       const [month, day, year] = date.split("\/").map(Number);
       const [hours, minutes] = time.split(":").map(Number);
       const startsAt = add(
-        new TZDate(Number(`20${year}`), month - 1, day, "Europe/Tallinn"),
+        new TZDate(
+          Number(`20${year}`),
+          (month ?? 0) - 1,
+          day ?? 0,
+          "Europe/Tallinn",
+        ),
         { hours, minutes },
       );
 

@@ -6,7 +6,10 @@ export const getUserLocation = createServerFn().handler(async () => {
   const cookieValue = getCookie(LOCATION_COOKIE);
 
   if (cookieValue) {
-    return JSON.parse(cookieValue);
+    return JSON.parse(cookieValue) as {
+      lat: number;
+      lon: number;
+    };
   }
 
   return null;
