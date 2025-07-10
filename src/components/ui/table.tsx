@@ -74,6 +74,7 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       "uppercase h-10 px-2 backdrop-blur-sm border-b-muted border-b text-left align-middle text-muted-foreground text-xs font-bold [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "first:pl-4 last:pr-4",
       className,
     )}
     {...props}
@@ -89,6 +90,7 @@ const TableCell = React.forwardRef<
     ref={ref}
     className={cn(
       "p-2 py-3 whitespace-nowrap align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "first:pl-4 last:pr-4",
       className,
     )}
     {...props}

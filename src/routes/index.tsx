@@ -9,8 +9,8 @@ import {
 } from "~/components/ui/table";
 import { getLastUpdate } from "~/serverFunctions/getLastUpdate";
 import { getCompetitions } from "~/serverFunctions/getCompetitions";
-import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { format, isSameDay } from "date-fns";
+import { Fragment, useEffect, useState } from "react";
 import { getDistance } from "geolib";
 import { getUserLocation } from "~/serverFunctions/getUserLocation";
 import Cookies from "js-cookie";
@@ -123,6 +123,10 @@ function Home() {
     setFilteredCompetitions(filterCompetitions(filters));
   };
 
+  const competitionsToday = filteredCompetitions.filter((competition) => {
+    return isSameDay(new Date(), competition.startsAt);
+  }).length;
+
   return (
     <>
       {notification && (
@@ -130,8 +134,8 @@ function Home() {
           <AlertDescription>{notification}</AlertDescription>
         </Alert>
       )}
-      <div className="p-2 flex flex-col h-screen">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
+      <div className="flex flex-col h-screen">
+        <div className="p-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
           <div className="flex flex-col p-2 gap-2">
             <h1 className="sm:text-3xl text-2xl font-bold">
               Nearby Disc golf competitions
@@ -155,51 +159,57 @@ function Home() {
             <TableHeader>
               <TableRow>
                 <TableHead>Start</TableHead>
-                <TableHead>Name</TableHead>
                 <TableHead>Course</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Distance</TableHead>
                 <TableHead>Description</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCompetitions.map((competition, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    {format(competition.startsAt, "yyyy-MM-dd HH:mm")}
-                  </TableCell>
-
-                  <TableCell>
-                    <a
-                      className="font-bold hover:underline"
-                      href={`https://discgolfmetrix.com/${competition.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                <Fragment key={`fragment-${i}`}>
+                  {i === competitionsToday && (
+                    <tr>
+                      <td colSpan={99} className="h-px bg-muted"></td>
+                    </tr>
+                  )}
+                  <TableRow>
+                    <TableCell>
+                      {format(competition.startsAt, "yyyy-MM-dd HH:mm")}
+                    </TableCell>
+                    <TableCell>
                       <span
-                        dangerouslySetInnerHTML={{ __html: competition.name }}
+                        dangerouslySetInnerHTML={{
+                          __html: competition.courseName,
+                        }}
                       />
-                    </a>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: competition.courseName,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {filters.location
-                      ? `${(competition.distance / 1000).toFixed(0)} km`
-                      : "Unknown"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: competition.description,
-                      }}
-                    />
-                  </TableCell>
-                </TableRow>
+                    </TableCell>
+                    <TableCell>
+                      <a
+                        className="font-bold hover:underline"
+                        href={`https://discgolfmetrix.com/${competition.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span
+                          dangerouslySetInnerHTML={{ __html: competition.name }}
+                        />
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      {filters.location
+                        ? `${(competition.distance / 1000).toFixed(0)} km`
+                        : "Unknown"}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: competition.description,
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                </Fragment>
               ))}
             </TableBody>
           </Table>

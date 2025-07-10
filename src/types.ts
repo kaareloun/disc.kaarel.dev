@@ -1,9 +1,6 @@
-import { z } from "zod";
-import { validateDGMetrixCompetitionsData } from "./utils/validation";
+import type { parseData } from "./utils/parseData";
 
-export type CompetitionWithDistance = z.infer<
-  typeof validateDGMetrixCompetitionsData
->[number] & {
+export type CompetitionWithDistance = ReturnType<typeof parseData>[number] & {
   distance: number;
 };
 
