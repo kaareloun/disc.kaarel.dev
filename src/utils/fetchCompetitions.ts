@@ -1,32 +1,38 @@
-import { LAST_FETCH_FILE, DATA_FILE, TIMEZONE } from "~/constants";
+import {
+  LAST_FETCH_FILE,
+  DATA_FILE,
+  TIMEZONE,
+  FETCH_INTERVAL_IN_HOURS,
+} from "~/constants";
 import fs from "fs";
 import { add, differenceInHours } from "date-fns";
 import { parseData } from "./parseData";
 import { TZDate } from "@date-fns/tz";
 
 export async function fetchCompetitions() {
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, "{}");
-  }
-
-  if (!fs.existsSync(LAST_FETCH_FILE)) {
-    fs.writeFileSync(LAST_FETCH_FILE, "2000-01-01T00:00:00.000Z");
-  }
-
-  const lastFetchDate = fs.readFileSync(LAST_FETCH_FILE, "utf-8").trim();
-
-  if (
-    lastFetchDate &&
-    differenceInHours(new Date(), new Date(lastFetchDate)) <= 1
-  ) {
-    const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-    return parseData(data);
-  }
-
-  const today = new TZDate(new Date(), TIMEZONE);
-  const data = [];
-
   try {
+    if (!fs.existsSync(DATA_FILE)) {
+      fs.writeFileSync(DATA_FILE, "{}");
+    }
+
+    if (!fs.existsSync(LAST_FETCH_FILE)) {
+      fs.writeFileSync(LAST_FETCH_FILE, "2000-01-01T00:00:00.000Z");
+    }
+
+    const lastFetchDate = fs.readFileSync(LAST_FETCH_FILE, "utf-8").trim();
+
+    if (
+      lastFetchDate &&
+      differenceInHours(new Date(), new Date(lastFetchDate)) <=
+        FETCH_INTERVAL_IN_HOURS
+    ) {
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
+      return parseData(data);
+    }
+
+    const today = new TZDate(new Date(), TIMEZONE);
+    const data = [];
+
     for (let i = 0; i < 3; i++) {
       const startDate = add(today, { days: i * 10 })
         .toISOString()

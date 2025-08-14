@@ -5,3 +5,5 @@ export const LOCATION_COOKIE = "location";
 export const SEARCH_RADIUS = 50000; // 50km
 
 export const TIMEZONE = "Europe/Tallinn";
+
+export const FETCH_INTERVAL_IN_HOURS = 1;

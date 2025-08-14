@@ -14,10 +14,15 @@ import { Fragment, useEffect, useState } from "react";
 import { getDistance } from "geolib";
 import { getUserLocation } from "~/serverFunctions/getUserLocation";
 import Cookies from "js-cookie";
-import { LOCATION_COOKIE, SEARCH_RADIUS } from "~/constants";
+import {
+  FETCH_INTERVAL_IN_HOURS,
+  LOCATION_COOKIE,
+  SEARCH_RADIUS,
+} from "~/constants";
 import { Input } from "~/components/ui/input";
 import type { CompetitionWithDistance, Filters } from "~/types";
 import { Alert, AlertDescription } from "~/components/ui/alert";
+import { cn } from "~/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -140,8 +145,13 @@ function Home() {
             <h1 className="sm:text-3xl text-2xl font-bold">
               Nearby Disc golf competitions
             </h1>
-            <span className="text-xs font-bold tracking-widest">
-              Last update {lastUpdate}
+            <span
+              className={cn("text-xs font-bold tracking-widest", {
+                "text-red-500":
+                  lastUpdate.diffInHours > FETCH_INTERVAL_IN_HOURS * 3,
+              })}
+            >
+              Last update {lastUpdate.distance}
             </span>
           </div>
           <div className="flex flex-col p-2 gap-2 w-full sm:w-auto">
