@@ -143,7 +143,7 @@ function Home() {
         <div className="p-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
           <div className="flex flex-col p-2 gap-2">
             <h1 className="sm:text-3xl text-2xl font-bold">
-              Nearby Disc golf competitions
+              Nearby discgolf competitions
             </h1>
             <span
               className={cn("text-xs font-bold tracking-widest", {
