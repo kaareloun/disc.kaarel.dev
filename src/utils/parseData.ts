@@ -4,7 +4,15 @@ import { add } from "date-fns";
 import { TIMEZONE } from "~/constants";
 
 export function parseData(data: unknown) {
-  const validatedData = validateDGMetrixCompetitionsData.parse(data);
+  const {
+    success,
+    data: validatedData,
+    error,
+  } = validateDGMetrixCompetitionsData.safeParse(data);
+  if (!success) {
+    console.log("Invalid data", error.errors.at(0));
+    throw new Error("Invalid data");
+  }
 
   const parsedData = [];
 
