@@ -27,7 +27,7 @@ import { cn } from "~/lib/utils";
 export const Route = createFileRoute("/")({
   component: Home,
   loader: async () => {
-    const [competitions, userLocation] = await Promise.all([
+    const [result, userLocation] = await Promise.all([
       getCompetitions(),
       getUserLocation(),
     ]);
@@ -35,7 +35,10 @@ export const Route = createFileRoute("/")({
     const lastUpdate = await getLastUpdate();
 
     return {
-      competitions,
+      competitions: result.competitions,
+      fetchError: result.fetchError,
+      skipped: result.skipped,
+      source: result.source,
       lastUpdate,
       userLocation,
     };
@@ -45,6 +48,9 @@ export const Route = createFileRoute("/")({
 function Home() {
   const {
     competitions,
+    fetchError,
+    skipped,
+    source,
     lastUpdate,
     userLocation: initialUserLocation,
   } = Route.useLoaderData();
@@ -139,6 +145,22 @@ function Home() {
           <AlertDescription>{notification}</AlertDescription>
         </Alert>
       )}
+      {fetchError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            Problem loading fresh data: {fetchError}. Showing{" "}
+            {competitions.length} competition(s)
+            {source === "cache" ? " from cache" : ""}.
+          </AlertDescription>
+        </Alert>
+      )}
+      {!fetchError && skipped > 0 && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            Skipped {skipped} invalid competition row(s) from upstream.
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="flex flex-col h-screen">
         <div className="p-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
           <div className="flex flex-col p-2 gap-2">
@@ -176,6 +198,21 @@ function Home() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {filteredCompetitions.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={99}
+                    className={cn(
+                      "text-center font-bold",
+                      fetchError ? "text-red-500" : "text-muted-foreground",
+                    )}
+                  >
+                    {fetchError
+                      ? `Couldn't load competitions: ${fetchError}`
+                      : "No competitions found. Try clearing the filter."}
+                  </TableCell>
+                </TableRow>
+              )}
               {filteredCompetitions.map((competition, i) => (
                 <Fragment key={`fragment-${i}`}>
                   {i === competitionsToday && (

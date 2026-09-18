@@ -1,6 +1,6 @@
-import type { parseData } from "./utils/parseData";
+import type { ParsedCompetition } from "./utils/parseData";
 
-export type CompetitionWithDistance = ReturnType<typeof parseData>[number] & {
+export type CompetitionWithDistance = ParsedCompetition & {
   distance: number;
 };
 

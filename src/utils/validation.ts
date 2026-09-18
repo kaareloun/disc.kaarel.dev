@@ -1,15 +1,31 @@
 import { z } from "zod";
 
-export const validateDGMetrixCompetitionsData = z.array(
-  z.tuple([
-    z.string().min(1), // id
-    z.string(), // name
-    z.number(), // lat
-    z.number(), // lon
-    z.string().regex(/^\d{1,2}\/\d{1,2}\/\d{2}$/), // date
-    z.string().regex(/^\d{2}:\d{2}$/), // time
-    z.string().min(1), // competitionType
-    z.string().min(1), // courseAndLayout
-    z.string(), // description
-  ]),
-);
+const relaxedText = z
+  .union([z.string(), z.number()])
+  .optional()
+  .nullable()
+  .transform((v) => (v == null ? "" : String(v)));
+
+const coordField = z
+  .union([z.number(), z.string()])
+  .transform((v) => (typeof v === "string" ? Number(v.trim()) : v))
+  .refine((v) => Number.isFinite(v), { message: "Invalid coordinate" });
+
+const dateField = z.string().trim().min(1);
+const timeField = z.string().trim().min(1);
+
+export const validateDGMetrixRow = z.tuple([
+  relaxedText,
+  relaxedText,
+  coordField,
+  coordField,
+  dateField,
+  timeField,
+  relaxedText,
+  relaxedText,
+  relaxedText,
+]);
+
+export type DGMetrixRow = z.infer<typeof validateDGMetrixRow>;
+
+export const validateDGMetrixCompetitionsData = z.array(z.unknown());
