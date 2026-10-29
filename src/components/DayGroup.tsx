@@ -20,7 +20,7 @@ export function DayGroup({ competitions, now, expandedId, onToggle }: Props) {
     <section
       aria-label={`${dayLabel(first.startsAt, now)}, ${dayDate(first.startsAt)}`}
     >
-      <h3 className="sticky top-[var(--toolbar-h,7.5rem)] z-10 -mx-4 flex items-baseline gap-2.5 bg-background px-4 py-2 sm:-mx-6 sm:px-6">
+      <h3 className="sticky top-0 z-10 -mx-4 flex items-baseline gap-2.5 bg-background px-4 py-2 sm:top-[var(--toolbar-h,7.5rem)] sm:-mx-6 sm:px-6">
         <span className="text-base font-semibold">
           {dayLabel(first.startsAt, now)}
         </span>

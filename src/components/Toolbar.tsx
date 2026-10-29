@@ -53,7 +53,7 @@ export function Toolbar({ filters, onChange }: Props) {
   return (
     <div
       ref={rootRef}
-      className="sticky top-0 z-20 -mx-4 bg-background px-4 py-3 sm:-mx-6 sm:px-6"
+      className="z-20 -mx-4 bg-background px-4 py-3 sm:sticky sm:top-0 sm:-mx-6 sm:px-6"
     >
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
         <label className="relative flex h-10 w-full items-center sm:flex-1">

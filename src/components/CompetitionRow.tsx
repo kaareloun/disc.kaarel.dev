@@ -1,10 +1,21 @@
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useId } from "react";
+import { useId, useRef } from "react";
 import { cn } from "~/lib/utils";
 import type { CompetitionWithDistance } from "~/types";
 import { formatDistance, formatTime, roundStatus } from "~/utils/time";
 import { CompetitionDetails } from "./CompetitionDetails";
+
+const EASE = [0.23, 1, 0.32, 1] as const;
+
+const panelVariants = {
+  closed: { height: 0, opacity: 0, transition: { duration: 0.18, ease: EASE } },
+  open: {
+    height: "auto",
+    opacity: 1,
+    transition: { duration: 0.28, ease: EASE },
+  },
+};
 
 type Props = {
   competition: CompetitionWithDistance;
@@ -20,11 +31,42 @@ export function CompetitionRow({
   onToggle,
 }: Props) {
   const panelId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
   const status = roundStatus(competition.startsAt, now);
   const distance = formatDistance(competition.distance);
 
+  // Opening a row can collapse another row above it. This row then moves up under the sticky day header.
+  // Runs when the panel is fully open and scrolls the row back into the free space.
+  const revealRow = () => {
+    const row = rootRef.current;
+    if (!row) {
+      return;
+    }
+
+    const header = row.closest("section")?.querySelector("h3");
+    const visibleTop = (header?.getBoundingClientRect().bottom ?? 0) + 8;
+    const { top, bottom } = row.getBoundingClientRect();
+    const offset =
+      top < visibleTop
+        ? top - visibleTop
+        : bottom > window.innerHeight
+          ? Math.min(bottom - window.innerHeight + 16, top - visibleTop)
+          : 0;
+
+    if (Math.abs(offset) > 1) {
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      window.scrollBy({
+        top: offset,
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    }
+  };
+
   return (
     <div
+      ref={rootRef}
       className={cn(
         "rounded-2xl transition-colors duration-200",
         expanded ? "bg-card shadow-sm ring-1 ring-border" : "hover:bg-card/70",
@@ -91,14 +133,11 @@ export function CompetitionRow({
           <motion.div
             id={panelId}
             key="details"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{
-              height: 0,
-              opacity: 0,
-              transition: { duration: 0.18, ease: [0.23, 1, 0.32, 1] },
-            }}
-            transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+            variants={panelVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            onAnimationComplete={(variant) => variant === "open" && revealRow()}
             className="overflow-hidden"
           >
             <CompetitionDetails
