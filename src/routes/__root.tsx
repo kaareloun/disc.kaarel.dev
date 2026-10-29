@@ -6,6 +6,7 @@ import {
   createRootRoute,
 } from "@tanstack/react-router";
 import * as React from "react";
+import { MotionConfig } from "motion/react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { ThemeProvider, useTheme } from "~/components/ui/theme-provider";
@@ -15,10 +16,11 @@ import appCss from "~/styles/app.css?url";
 export const Route = createRootRoute({
   head: () => ({
     meta: [
-      { title: "Nearby competitions | disc.kaarel.dev" },
+      { title: "Disc golf near you | disc.kaarel.dev" },
       {
         name: "description",
-        content: "Nearby competitions | disc.kaarel.dev",
+        content:
+          "Weekly rounds and tournaments near you, from Disc Golf Metrix.",
       },
       {
         charSet: "utf-8",
@@ -30,6 +32,16 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap",
+      },
       {
         rel: "icon",
         href: "/favicon.ico",
@@ -82,7 +94,9 @@ function RootComponent() {
   return (
     <ThemeProvider defaultTheme={theme}>
       <RootDocument>
-        <Outlet />
+        <MotionConfig reducedMotion="user">
+          <Outlet />
+        </MotionConfig>
       </RootDocument>
     </ThemeProvider>
   );

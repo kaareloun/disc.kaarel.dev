@@ -5,10 +5,13 @@ import {
 import { TZDate } from "@date-fns/tz";
 import { add } from "date-fns";
 import { TIMEZONE } from "~/constants";
+import { toPlainText } from "./decodeHtml";
 
 export type ParsedCompetition = {
   id: string;
   name: string;
+  seriesName: string | null;
+  eventName: string;
   lat: number;
   lon: number;
   startsAt: Date;
@@ -40,6 +43,8 @@ export function parseData(data: unknown): ParseResult {
     }
   };
 
+  const seenIds = new Set<string>();
+
   outer.data.forEach((row, index) => {
     const parsed = validateDGMetrixRow.safeParse(row);
     if (!parsed.success) {
@@ -61,6 +66,12 @@ export function parseData(data: unknown): ParseResult {
       description,
     ] = parsed.data;
 
+    // Fetch windows share their edge days, so the same round can arrive twice.
+    if (id && seenIds.has(id)) {
+      return;
+    }
+    seenIds.add(id);
+
     const startsAt = parseStartsAt(date, time);
     if (startsAt == null) {
       noteSkipped(`Row ${index} has unparseable date: "${date}"`);
@@ -68,17 +79,27 @@ export function parseData(data: unknown): ParseResult {
     }
 
     const [courseName, layoutName] = courseAndLayout.split(" &rarr; ");
+    const nameParts = name
+      .split("&rarr;")
+      .map((part) => toPlainText(part))
+      .filter(Boolean);
+    // Metrix names sub-events as "Series → Event". The last part names this round.
+    const eventName = nameParts.at(-1) ?? "Untitled competition";
+    const seriesName =
+      nameParts.length > 1 ? nameParts.slice(0, -1).join(" › ") : null;
 
     parsedData.push({
       id: id || `unknown-${index}`,
-      name: removeHtml(name),
+      name: nameParts.join(" → "),
+      seriesName,
+      eventName,
       lat,
       lon,
       startsAt,
       competitionType,
-      courseName: removeHtml(courseName ?? "") || "Unknown course",
-      layoutName: layoutName ? removeHtml(layoutName) : null,
-      description: removeHtml(description),
+      courseName: toPlainText(courseName ?? "") || "Unknown course",
+      layoutName: layoutName ? toPlainText(layoutName) || null : null,
+      description: toPlainText(description),
     });
   });
 
@@ -132,8 +153,4 @@ function parseStartsAt(date: string, time: string): Date | null {
   });
 
   return Number.isNaN(startsAt.getTime()) ? null : startsAt;
-}
-
-function removeHtml(str: string) {
-  return str.replace(/<[^>]*>/g, "");
 }

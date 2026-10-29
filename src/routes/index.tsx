@@ -1,35 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import { getLastUpdate } from "~/serverFunctions/getLastUpdate";
-import { getCompetitions } from "~/serverFunctions/getCompetitions";
-import { format, isSameDay } from "date-fns";
-import { Fragment, useEffect, useState } from "react";
-import { getDistance } from "geolib";
-import { getUserLocation } from "~/serverFunctions/getUserLocation";
 import Cookies from "js-cookie";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CompetitionList } from "~/components/CompetitionList";
+import { EmptyState } from "~/components/EmptyState";
+import { LocationPrompt } from "~/components/LocationPrompt";
+import { NextUp } from "~/components/NextUp";
+import { Notice } from "~/components/Notice";
+import { SiteHeader } from "~/components/SiteHeader";
+import { Toolbar } from "~/components/Toolbar";
 import {
   FETCH_INTERVAL_IN_HOURS,
   LOCATION_COOKIE,
-  SEARCH_RADIUS,
+  RADIUS_COOKIE,
 } from "~/constants";
-import { Input } from "~/components/ui/input";
-import type { CompetitionWithDistance, Filters } from "~/types";
-import { Alert, AlertDescription } from "~/components/ui/alert";
+import { useNow } from "~/hooks/useNow";
 import { cn } from "~/lib/utils";
+import { getCompetitions } from "~/serverFunctions/getCompetitions";
+import { getLastUpdate } from "~/serverFunctions/getLastUpdate";
+import { getPreferences } from "~/serverFunctions/getPreferences";
+import type { Filters, UserLocation } from "~/types";
+import { filterCompetitions } from "~/utils/filterCompetitions";
 
 export const Route = createFileRoute("/")({
   component: Home,
   loader: async () => {
-    const [result, userLocation] = await Promise.all([
+    const [result, preferences] = await Promise.all([
       getCompetitions(),
-      getUserLocation(),
+      getPreferences(),
     ]);
 
     const lastUpdate = await getLastUpdate();
@@ -37,231 +34,150 @@ export const Route = createFileRoute("/")({
     return {
       competitions: result.competitions,
       fetchError: result.fetchError,
-      skipped: result.skipped,
       source: result.source,
       lastUpdate,
-      userLocation,
+      preferences,
+      serverNow: Date.now(),
     };
   },
 });
 
+const COOKIE_OPTIONS = { path: "/", expires: 365 };
+
 function Home() {
-  const {
-    competitions,
-    fetchError,
-    skipped,
-    source,
-    lastUpdate,
-    userLocation: initialUserLocation,
-  } = Route.useLoaderData();
+  const { competitions, fetchError, source, lastUpdate, preferences, serverNow } =
+    Route.useLoaderData();
 
-  const [notification, setNotification] = useState<string | null>(null);
+  const now = useNow(serverNow);
+  const [filters, setFilters] = useState<Filters>({
+    search: "",
+    day: "all",
+    radiusKm: preferences.radiusKm,
+    location: preferences.location,
+  });
+  const [locating, setLocating] = useState(!preferences.location?.placeName);
+  const [notice, setNotice] = useState<string | null>(null);
+  const locationRef = useRef(filters.location);
+  locationRef.current = filters.location;
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const newPos = {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          };
-
-          Cookies.set(LOCATION_COOKIE, JSON.stringify(newPos));
-          updateFilters({
-            ...filters,
-            location: newPos,
-          });
-          setNotification(null);
-        },
-        () =>
-          setNotification(
-            filters.location
-              ? "Couldn't refresh your location, using the last saved one."
-              : "Couldn't get your location. Showing all available competitions for now.",
-          ),
-      );
+  const updateFilters = useCallback((changes: Partial<Filters>) => {
+    setFilters((current) => ({ ...current, ...changes }));
+    if (changes.radiusKm) {
+      Cookies.set(RADIUS_COOKIE, String(changes.radiusKm), COOKIE_OPTIONS);
     }
   }, []);
 
-  const [filters, setFilters] = useState<Filters>({
-    search: "",
-    location: initialUserLocation,
-  });
+  const saveLocation = useCallback(
+    (location: UserLocation) => {
+      Cookies.set(LOCATION_COOKIE, JSON.stringify(location), COOKIE_OPTIONS);
+      updateFilters({ location });
+      setNotice(null);
+    },
+    [updateFilters],
+  );
 
-  const filterCompetitions = (filters: Filters) => {
-    const lowerCaseValue = filters.search.toLowerCase();
+  const locate = useCallback(() => {
+    if (!("geolocation" in navigator)) {
+      setLocating(false);
+      setNotice("This browser cannot share a location. Pick a town instead.");
+      return;
+    }
 
-    const filtered: CompetitionWithDistance[] = competitions
-      .map((competition) => {
-        const distance = filters.location
-          ? getDistance(
-              {
-                latitude: filters.location.lat,
-                longitude: filters.location.lon,
-              },
-              { latitude: competition.lat, longitude: competition.lon },
-            )
-          : 0;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocating(false);
+        saveLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+      },
+      () => {
+        setLocating(false);
+        setNotice(
+          locationRef.current
+            ? "Your location did not refresh. Distances use the last saved location."
+            : "Your browser did not share a location. Pick a town instead.",
+        );
+      },
+      { maximumAge: 10 * 60 * 1000, timeout: 15_000 },
+    );
+  }, [saveLocation]);
 
-        return {
-          ...competition,
-          distance,
-        };
-      })
-      .filter((competition) => {
-        if (
-          filters.search &&
-          !competition.name.toLowerCase().includes(lowerCaseValue) &&
-          !competition.courseName.toLowerCase().includes(lowerCaseValue) &&
-          !competition.layoutName?.toLowerCase().includes(lowerCaseValue) &&
-          !competition.description.toLowerCase().includes(lowerCaseValue)
-        ) {
-          return false;
-        }
+  useEffect(() => {
+    // A town picked by hand stays until the user changes it.
+    if (!preferences.location?.placeName) {
+      locate();
+    }
+  }, []);
 
-        return competition.distance <= SEARCH_RADIUS;
-      });
-
-    return filtered;
-  };
-
-  const [filteredCompetitions, setFilteredCompetitions] = useState<
-    CompetitionWithDistance[]
-  >(filterCompetitions(filters));
-
-  const updateFilters = (filters: Filters) => {
-    setFilters(filters);
-    setFilteredCompetitions(filterCompetitions(filters));
-  };
-
-  const competitionsToday = filteredCompetitions.filter((competition) => {
-    return isSameDay(new Date(), competition.startsAt);
-  }).length;
+  const visible = useMemo(
+    () => filterCompetitions(competitions, filters, now),
+    [competitions, filters, now],
+  );
+  const nextUp = visible[0];
+  const stale = lastUpdate.diffInHours > FETCH_INTERVAL_IN_HOURS * 3;
 
   return (
-    <>
-      {notification && (
-        <Alert variant="info">
-          <AlertDescription>{notification}</AlertDescription>
-        </Alert>
-      )}
-      {fetchError && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            Problem loading fresh data: {fetchError}. Showing{" "}
-            {competitions.length} competition(s)
-            {source === "cache" ? " from cache" : ""}.
-          </AlertDescription>
-        </Alert>
-      )}
-      {!fetchError && skipped > 0 && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            Skipped {skipped} invalid competition row(s) from upstream.
-          </AlertDescription>
-        </Alert>
-      )}
-      <div className="flex flex-col h-screen">
-        <div className="p-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-background">
-          <div className="flex flex-col p-2 gap-2">
-            <h1 className="sm:text-3xl text-2xl font-bold">
-              Nearby discgolf competitions
-            </h1>
-            <span
-              className={cn("text-xs font-bold tracking-widest", {
-                "text-red-500":
-                  lastUpdate.diffInHours > FETCH_INTERVAL_IN_HOURS * 3,
-              })}
-            >
-              Last update {lastUpdate.distance}
-            </span>
-          </div>
-          <div className="flex flex-col p-2 gap-2 w-full sm:w-auto">
-            <Input
-              className="w-full max-w-md"
-              placeholder="Filter"
-              onChange={(e) =>
-                updateFilters({ ...filters, search: e.target.value })
-              }
-            />
-          </div>
-        </div>
-        <div className="flex-1">
-          <Table className="border-separate border-spacing-y-0 relative">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Start</TableHead>
-                <TableHead>Course</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Distance</TableHead>
-                <TableHead>Description</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCompetitions.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={99}
-                    className={cn(
-                      "text-center font-bold",
-                      fetchError ? "text-red-500" : "text-muted-foreground",
-                    )}
-                  >
-                    {fetchError
-                      ? `Couldn't load competitions: ${fetchError}`
-                      : "No competitions found. Try clearing the filter."}
-                  </TableCell>
-                </TableRow>
-              )}
-              {filteredCompetitions.map((competition, i) => (
-                <Fragment key={`fragment-${i}`}>
-                  {i === competitionsToday && (
-                    <tr>
-                      <td colSpan={99} className="h-px bg-muted"></td>
-                    </tr>
-                  )}
-                  <TableRow>
-                    <TableCell>
-                      {format(competition.startsAt, "yyyy-MM-dd HH:mm")}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: competition.courseName,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <a
-                        className="font-bold hover:underline"
-                        href={`https://discgolfmetrix.com/${competition.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <span
-                          dangerouslySetInnerHTML={{ __html: competition.name }}
-                        />
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      {filters.location
-                        ? `${(competition.distance / 1000).toFixed(0)} km`
-                        : "Unknown"}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: competition.description,
-                        }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                </Fragment>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16 sm:px-6">
+      <SiteHeader
+        location={filters.location}
+        locating={locating}
+        onLocate={locate}
+        onPick={saveLocation}
+        radiusKm={filters.radiusKm}
+        onRadiusChange={(radiusKm) => updateFilters({ radiusKm })}
+      />
+
+      <div className="space-y-3">
+        {notice && filters.location && <Notice>{notice}</Notice>}
+        {fetchError && (
+          <Notice tone="error">
+            Fresh data did not load ({fetchError}).{" "}
+            {source === "cache" && competitions.length > 0
+              ? "The list shows the last saved data."
+              : null}
+          </Notice>
+        )}
       </div>
-    </>
+
+      {filters.location ? (
+        <>
+          <div className="mt-2">
+            {nextUp && <NextUp competition={nextUp} now={now} />}
+          </div>
+          <div className="mt-4" />
+          <Toolbar filters={filters} onChange={updateFilters} />
+          <main className="mt-2">
+            {visible.length > 0 ? (
+              <CompetitionList competitions={visible} now={now} />
+            ) : (
+              <EmptyState filters={filters} onChange={updateFilters} />
+            )}
+          </main>
+        </>
+      ) : (
+        <div className="mt-2">
+          <LocationPrompt locating={locating} onLocate={locate} onPick={saveLocation} />
+        </div>
+      )}
+
+      <footer className="mt-16 flex flex-wrap justify-between gap-2 border-t pt-6 text-sm text-muted-foreground">
+        <span>
+          Data from{" "}
+          <a
+            href="https://discgolfmetrix.com"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Disc Golf Metrix
+          </a>
+        </span>
+        <span className={cn(stale && "font-semibold text-destructive")}>
+          Updated {lastUpdate.distance}
+        </span>
+      </footer>
+    </div>
   );
 }
