@@ -30,6 +30,9 @@ export function dayLabel(date: Date, now: number) {
 
 export const dayDate = (date: Date) => format(inZone(date), "d MMMM");
 
+export const formatMonth = (date: Date | number, pattern = "MMM yyyy") =>
+  format(inZone(date), pattern);
+
 export type RoundStatus = "upcoming" | "live" | "finished";
 
 export function roundStatus(startsAt: Date, now: number): RoundStatus {

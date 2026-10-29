@@ -1,4 +1,6 @@
 import { fetchCompetitions } from "~/utils/fetchCompetitions";
+import { syncCourses } from "~/utils/syncCourses";
 
-await fetchCompetitions();
+const { competitions } = await fetchCompetitions();
+await syncCourses(competitions.map((competition) => competition.id));
 console.log("Done");

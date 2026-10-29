@@ -7,6 +7,7 @@ import {
 import fs from "node:fs";
 import { add, differenceInHours } from "date-fns";
 import { parseData } from "./parseData";
+import { syncCourses } from "./syncCourses";
 import { TZDate } from "@date-fns/tz";
 
 import type { ParsedCompetition, ParseResult } from "./parseData";
@@ -104,6 +105,9 @@ export async function fetchCompetitions(): Promise<CompetitionsResult> {
 
   fs.writeFileSync(DATA_FILE, JSON.stringify(rawData, null, 2));
   fs.writeFileSync(LAST_FETCH_FILE, new Date().toISOString());
+
+  // Runs in the background. The page does not wait for course data.
+  void syncCourses(parsed.competitions.map((competition) => competition.id));
 
   const fetchError =
     chunkErrors.length > 0 || parsed.skipped > 0

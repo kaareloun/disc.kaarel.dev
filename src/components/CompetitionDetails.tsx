@@ -4,7 +4,9 @@ import { useCompetitionDetails } from "~/hooks/useCompetitionDetails";
 import type { CompetitionWithDistance } from "~/types";
 import { downloadCalendarEvent } from "~/utils/calendar";
 import { courseUrl, directionsUrl, metrixUrl } from "~/utils/places";
+import { CourseSection } from "./CourseSection";
 import { DetailStat } from "./DetailStat";
+import { Leaderboard } from "./Leaderboard";
 import { LinkifiedText } from "./LinkifiedText";
 
 const actionClass =
@@ -15,8 +17,10 @@ type Props = {
   upcoming: boolean;
 };
 
+const LIVE_REFRESH_MS = 60_000;
+
 export function CompetitionDetails({ competition, upcoming }: Props) {
-  const state = useCompetitionDetails(competition.id);
+  const state = useCompetitionDetails(competition.id, true, upcoming ? undefined : LIVE_REFRESH_MS);
   const details = state.status === "done" ? state.details : null;
   // The details API has the full text. The list feed drops some numbers from it.
   const description = details?.comment || competition.description;
@@ -62,6 +66,10 @@ export function CompetitionDetails({ competition, upcoming }: Props) {
         </motion.ul>
       )}
 
+      {details && details.leaders.length > 0 && (
+        <Leaderboard leaders={details.leaders} holes={details.holes} />
+      )}
+
       {description && (
         <p className="max-w-prose whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
           <LinkifiedText text={description.replace(/\s*\|\s*/g, "\n")} />
@@ -88,7 +96,7 @@ export function CompetitionDetails({ competition, upcoming }: Props) {
             Add to calendar
           </button>
         )}
-        {details?.courseId && (
+        {details?.courseId && !details.course && (
           <a
             href={courseUrl(details.courseId)}
             target="_blank"
@@ -99,6 +107,8 @@ export function CompetitionDetails({ competition, upcoming }: Props) {
           </a>
         )}
       </div>
+
+      {details?.course && <CourseSection course={details.course} />}
     </div>
   );
 }

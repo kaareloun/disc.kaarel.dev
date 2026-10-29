@@ -21,7 +21,12 @@ function load(id: string) {
   return request;
 }
 
-export function useCompetitionDetails(id: string, enabled = true): State {
+// With refreshMs set, reloads in the background and keeps the last good result on screen.
+export function useCompetitionDetails(
+  id: string,
+  enabled = true,
+  refreshMs?: number,
+): State {
   const [state, setState] = useState<State>({ status: "loading" });
 
   useEffect(() => {
@@ -41,10 +46,21 @@ export function useCompetitionDetails(id: string, enabled = true): State {
         }),
     );
 
+    const timer = refreshMs
+      ? setInterval(() => {
+          requests.delete(id);
+          load(id).then(
+            (details) => active && setState({ status: "done", details }),
+            () => undefined,
+          );
+        }, refreshMs)
+      : undefined;
+
     return () => {
       active = false;
+      clearInterval(timer);
     };
-  }, [id, enabled]);
+  }, [id, enabled, refreshMs]);
 
   return state;
 }
