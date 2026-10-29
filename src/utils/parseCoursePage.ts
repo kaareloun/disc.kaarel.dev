@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { METRIX_URL } from "~/constants";
 import type { CourseRecord, CourseUsageMonth } from "~/types";
 import { toPlainText } from "./decodeHtml";
 
@@ -12,7 +11,6 @@ export type CoursePage = {
   parRating: number | null;
   record: CourseRecord | null;
   usage: CourseUsageMonth[];
-  images: string[];
 };
 
 const USAGE_MONTHS = 12;
@@ -42,7 +40,6 @@ export function parseCoursePage(html: string): CoursePage {
     parRating: matchNumber(headerText, /PAR rating:\s*(\d+)/),
     record: parseRecord(html),
     usage: parseUsage(html),
-    images: parseImages(html),
   };
 }
 
@@ -121,21 +118,6 @@ function parseRecord(html: string): CourseRecord | null {
     date: parseUsDate(link?.[2] ?? ""),
     competitionId: link?.[1] ?? null,
   };
-}
-
-// Images in the course description are often hand-drawn course maps.
-function parseImages(html: string): string[] {
-  const description = between(html, "</header>", "<form") ?? "";
-  const sources = [...description.matchAll(/<img[^>]*src="([^"]+)"/gi)]
-    .map((match) => match[1] ?? "")
-    .filter(
-      (src) =>
-        src.startsWith("/img/upload/") ||
-        src.startsWith(`${METRIX_URL}/img/upload/`),
-    )
-    .map((src) => (src.startsWith("/") ? `${METRIX_URL}${src}` : src));
-
-  return [...new Set(sources)];
 }
 
 function readJsVariable(html: string, name: string): unknown {

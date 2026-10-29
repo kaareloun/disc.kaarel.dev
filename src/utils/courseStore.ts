@@ -68,7 +68,6 @@ async function fetchCourse(courseId: string): Promise<Course> {
     par: page.par,
     lengthM: page.lengthM,
     parRating: page.parRating,
-    images: page.images,
     record: page.record,
     usage: page.usage,
     fetchedAt: new Date().toISOString(),

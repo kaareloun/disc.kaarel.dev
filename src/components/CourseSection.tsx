@@ -2,7 +2,6 @@ import type { Course } from "~/types";
 import { courseUrl, metrixUrl } from "~/utils/places";
 import { formatDiff } from "~/utils/score";
 import { formatMonth } from "~/utils/time";
-import { CourseImages } from "./CourseImages";
 import { CourseUsage } from "./CourseUsage";
 import { DetailStat } from "./DetailStat";
 
@@ -44,10 +43,6 @@ export function CourseSection({ course }: { course: Course }) {
             </>
           )}
         </p>
-      )}
-
-      {course.images.length > 0 && (
-        <CourseImages images={course.images} name={course.name} />
       )}
 
       {course.usage.filter((month) => month.players > 0).length > 1 && (

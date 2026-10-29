@@ -60,7 +60,6 @@ export type Course = {
   par: number | null;
   lengthM: number | null;
   parRating: number | null;
-  images: string[];
   record: CourseRecord | null;
   usage: CourseUsageMonth[];
   fetchedAt: string;
