@@ -12,12 +12,17 @@ export function CourseUsage({ usage }: { usage: CourseUsageMonth[] }) {
         <span>Players per month</span>
         {last && (
           <span>
-            <span className="font-semibold text-foreground tabular">{last.players}</span> in{" "}
-            {formatMonth(new Date(last.month), "MMMM")}
+            <span className="tabular font-semibold text-foreground">
+              {last.players}
+            </span>{" "}
+            in {formatMonth(new Date(last.month), "MMMM")}
           </span>
         )}
       </div>
-      <ol className="mt-2 flex h-12 items-end gap-1" aria-label="Players per month">
+      <ol
+        className="mt-2 flex h-12 items-end gap-1"
+        aria-label="Players per month"
+      >
         {usage.map((month, index) => (
           <li
             key={month.month}

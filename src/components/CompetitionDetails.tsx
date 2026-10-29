@@ -20,7 +20,11 @@ type Props = {
 const LIVE_REFRESH_MS = 60_000;
 
 export function CompetitionDetails({ competition, upcoming }: Props) {
-  const state = useCompetitionDetails(competition.id, true, upcoming ? undefined : LIVE_REFRESH_MS);
+  const state = useCompetitionDetails(
+    competition.id,
+    true,
+    upcoming ? undefined : LIVE_REFRESH_MS,
+  );
   const details = state.status === "done" ? state.details : null;
   // The details API has the full text. The list feed drops some numbers from it.
   const description = details?.comment || competition.description;
@@ -34,14 +38,22 @@ export function CompetitionDetails({ competition, upcoming }: Props) {
           ))}
         {details && (
           <>
-            <DetailStat label={upcoming ? "Registered" : "Playing"} value={details.players || "–"} />
-            {details.holes > 0 && <DetailStat label="Holes" value={details.holes} />}
-            {details.par != null && <DetailStat label="Par" value={details.par} />}
+            <DetailStat
+              label={upcoming ? "Registered" : "Playing"}
+              value={details.players || "–"}
+            />
+            {details.holes > 0 && (
+              <DetailStat label="Holes" value={details.holes} />
+            )}
+            {details.par != null && (
+              <DetailStat label="Par" value={details.par} />
+            )}
           </>
         )}
         {state.status === "error" && (
           <p className="text-muted-foreground">
-            Metrix did not send the player list. Open the round in Metrix to see it.
+            Metrix did not send the player list. Open the round in Metrix to see
+            it.
           </p>
         )}
       </dl>
@@ -60,7 +72,9 @@ export function CompetitionDetails({ competition, upcoming }: Props) {
               className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium"
             >
               {division.name}
-              <span className="ml-1.5 text-muted-foreground tabular">{division.count}</span>
+              <span className="tabular ml-1.5 text-muted-foreground">
+                {division.count}
+              </span>
             </li>
           ))}
         </motion.ul>
@@ -77,7 +91,12 @@ export function CompetitionDetails({ competition, upcoming }: Props) {
       )}
 
       <div className="flex flex-wrap gap-2">
-        <a href={metrixUrl(competition.id)} target="_blank" rel="noreferrer" className={actionClass}>
+        <a
+          href={metrixUrl(competition.id)}
+          target="_blank"
+          rel="noreferrer"
+          className={actionClass}
+        >
           <ExternalLink className="size-4" />
           {upcoming ? "Register in Metrix" : "Live scores"}
         </a>
@@ -91,7 +110,11 @@ export function CompetitionDetails({ competition, upcoming }: Props) {
           Directions
         </a>
         {upcoming && (
-          <button type="button" onClick={() => downloadCalendarEvent(competition)} className={actionClass}>
+          <button
+            type="button"
+            onClick={() => downloadCalendarEvent(competition)}
+            className={actionClass}
+          >
             <CalendarPlus className="size-4" />
             Add to calendar
           </button>

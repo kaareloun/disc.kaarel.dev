@@ -2,7 +2,10 @@ import { ROUND_DURATION_IN_HOURS } from "~/constants";
 import type { ParsedCompetition } from "./parseData";
 
 const toIcsDate = (date: Date) =>
-  date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  date
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
 
 const escapeIcs = (text: string) =>
   text.replace(/[\\;,]/g, (char) => `\\${char}`).replace(/\n/g, "\\n");

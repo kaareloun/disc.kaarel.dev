@@ -12,7 +12,9 @@ export function Notice({
       role={tone === "error" ? "alert" : "status"}
       className={cn(
         "rounded-2xl px-4 py-3 text-sm font-medium",
-        tone === "error" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground",
+        tone === "error"
+          ? "bg-destructive/10 text-destructive"
+          : "bg-muted text-muted-foreground",
       )}
     >
       {children}

@@ -4,7 +4,6 @@ import { differenceInHours } from "date-fns";
 import { COURSES_DIR, COURSE_TTL_IN_HOURS } from "~/constants";
 import type { Course } from "~/types";
 import { metrixFetch } from "./metrixFetch";
-import { parseCourseMap, type CourseMap } from "./parseCourseMap";
 import { parseCoursePage } from "./parseCoursePage";
 
 // Metrix builds the page from all past rounds. Busy courses take over a minute.
@@ -23,7 +22,8 @@ export function readCourse(courseId: string): Course | null {
 export function isFresh(course: Course | null): course is Course {
   return (
     course != null &&
-    differenceInHours(new Date(), new Date(course.fetchedAt)) < COURSE_TTL_IN_HOURS
+    differenceInHours(new Date(), new Date(course.fetchedAt)) <
+      COURSE_TTL_IN_HOURS
   );
 }
 
@@ -57,44 +57,17 @@ export async function loadCourse(courseId: string): Promise<Course> {
 }
 
 async function fetchCourse(courseId: string): Promise<Course> {
-  const [html, map] = await Promise.all([
-    metrixFetch(`/course/${courseId}`, COURSE_PAGE_TIMEOUT_MS).then((res) => res.text()),
-    metrixFetch(`/map/course_map_json.php?ID=${courseId}`)
-      .then((res) => res.json())
-      .then(parseCourseMap)
-      .catch((): CourseMap | null => null),
-  ]);
-  const page = parseCoursePage(html);
-  const mapHoles = map?.holes ?? [];
-  const holeCount = Math.max(mapHoles.length, page.holeStats.length);
+  const res = await metrixFetch(`/course/${courseId}`, COURSE_PAGE_TIMEOUT_MS);
+  const page = parseCoursePage(await res.text());
 
   return {
     id: courseId,
     name: page.name,
-    layoutName: map?.layoutName ?? null,
     location: page.location,
     baskets: page.baskets,
     par: page.par,
     lengthM: page.lengthM,
     parRating: page.parRating,
-    holes: Array.from({ length: holeCount }, (_, index) => {
-      const hole = mapHoles[index];
-      const stats = page.holeStats[index];
-      return {
-        label: hole?.label ?? String(index + 1),
-        par: hole?.par ?? null,
-        lengthM: hole?.lengthM ?? null,
-        averageScore: stats?.averageScore ?? null,
-        birdiePct: stats?.birdiePct ?? null,
-        parPct: stats?.parPct ?? null,
-        bogeyPct: stats?.bogeyPct ?? null,
-        tee: hole?.tee ?? null,
-        basket: hole?.basket ?? null,
-        path: hole?.path ?? [],
-        fairway: hole?.fairway ?? [],
-      };
-    }),
-    outOfBounds: map?.outOfBounds ?? [],
     images: page.images,
     record: page.record,
     usage: page.usage,
@@ -102,7 +75,8 @@ async function fetchCourse(courseId: string): Promise<Course> {
   };
 }
 
-const coursePath = (courseId: string) => path.join(COURSES_DIR, `${courseId}.json`);
+const coursePath = (courseId: string) =>
+  path.join(COURSES_DIR, `${courseId}.json`);
 
 // Writes through a temp file, so a reader never sees half a file.
 export function writeJson(file: string, data: unknown) {

@@ -1,4 +1,10 @@
-export function CourseImages({ images, name }: { images: string[]; name: string }) {
+export function CourseImages({
+  images,
+  name,
+}: {
+  images: string[];
+  name: string;
+}) {
   return (
     <ul className="flex flex-wrap gap-2" aria-label="Course map images">
       {images.map((src) => (

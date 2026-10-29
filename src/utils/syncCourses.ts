@@ -40,7 +40,9 @@ async function sync(competitionIds: string[]) {
     try {
       const res = await metrixFetch(`/api.php?content=result&id=${id}`);
       const { Competition } = courseIdResponse.parse(await res.json());
-      courseIds[id] = Competition?.CourseID ? String(Competition.CourseID) : null;
+      courseIds[id] = Competition?.CourseID
+        ? String(Competition.CourseID)
+        : null;
     } catch {
       failedLookups += 1;
     }
@@ -80,10 +82,17 @@ function readCourseIds(): Record<string, string | null> {
 async function pool<T>(items: T[], worker: (item: T) => Promise<void>) {
   const queue = [...items];
   await Promise.all(
-    Array.from({ length: Math.min(SYNC_CONCURRENCY, queue.length) }, async () => {
-      for (let item = queue.shift(); item !== undefined; item = queue.shift()) {
-        await worker(item);
-      }
-    }),
+    Array.from(
+      { length: Math.min(SYNC_CONCURRENCY, queue.length) },
+      async () => {
+        for (
+          let item = queue.shift();
+          item !== undefined;
+          item = queue.shift()
+        ) {
+          await worker(item);
+        }
+      },
+    ),
   );
 }

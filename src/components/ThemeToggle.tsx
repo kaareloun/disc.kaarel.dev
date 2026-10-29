@@ -21,7 +21,11 @@ export function ThemeToggle() {
           exit={{ opacity: 0, rotate: 60, scale: 0.8 }}
           transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
         >
-          {theme === "dark" ? <Moon className="size-5" /> : <Sun className="size-5" />}
+          {theme === "dark" ? (
+            <Moon className="size-5" />
+          ) : (
+            <Sun className="size-5" />
+          )}
         </motion.span>
       </AnimatePresence>
     </button>

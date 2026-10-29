@@ -45,8 +45,14 @@ export const Route = createFileRoute("/")({
 const COOKIE_OPTIONS = { path: "/", expires: 365 };
 
 function Home() {
-  const { competitions, fetchError, source, lastUpdate, preferences, serverNow } =
-    Route.useLoaderData();
+  const {
+    competitions,
+    fetchError,
+    source,
+    lastUpdate,
+    preferences,
+    serverNow,
+  } = Route.useLoaderData();
 
   const now = useNow(serverNow);
   const [filters, setFilters] = useState<Filters>({
@@ -158,7 +164,11 @@ function Home() {
         </>
       ) : (
         <div className="mt-2">
-          <LocationPrompt locating={locating} onLocate={locate} onPick={saveLocation} />
+          <LocationPrompt
+            locating={locating}
+            onLocate={locate}
+            onPick={saveLocation}
+          />
         </div>
       )}
 

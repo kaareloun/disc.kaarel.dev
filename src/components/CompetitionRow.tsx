@@ -13,7 +13,12 @@ type Props = {
   onToggle: () => void;
 };
 
-export function CompetitionRow({ competition, now, expanded, onToggle }: Props) {
+export function CompetitionRow({
+  competition,
+  now,
+  expanded,
+  onToggle,
+}: Props) {
   const panelId = useId();
   const status = roundStatus(competition.startsAt, now);
   const distance = formatDistance(competition.distance);
@@ -60,13 +65,15 @@ export function CompetitionRow({ competition, now, expanded, onToggle }: Props) 
           </span>
           <span className="mt-0.5 block truncate text-sm text-muted-foreground">
             {competition.courseName}
-            {competition.layoutName && <span className="opacity-70"> / {competition.layoutName}</span>}
+            {competition.layoutName && (
+              <span className="opacity-70"> / {competition.layoutName}</span>
+            )}
           </span>
         </span>
 
         <span className="flex items-center gap-1.5 pt-0.5">
           {distance && (
-            <span className="whitespace-nowrap text-sm text-muted-foreground tabular">
+            <span className="tabular whitespace-nowrap text-sm text-muted-foreground">
               {distance}
             </span>
           )}
@@ -86,11 +93,18 @@ export function CompetitionRow({ competition, now, expanded, onToggle }: Props) 
             key="details"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0, transition: { duration: 0.18, ease: [0.23, 1, 0.32, 1] } }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: { duration: 0.18, ease: [0.23, 1, 0.32, 1] },
+            }}
             transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
             className="overflow-hidden"
           >
-            <CompetitionDetails competition={competition} upcoming={status === "upcoming"} />
+            <CompetitionDetails
+              competition={competition}
+              upcoming={status === "upcoming"}
+            />
           </motion.div>
         )}
       </AnimatePresence>

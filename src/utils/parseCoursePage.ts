@@ -3,13 +3,6 @@ import { METRIX_URL } from "~/constants";
 import type { CourseRecord, CourseUsageMonth } from "~/types";
 import { toPlainText } from "./decodeHtml";
 
-export type HoleStats = {
-  averageScore: number | null;
-  birdiePct: number | null;
-  parPct: number | null;
-  bogeyPct: number | null;
-};
-
 export type CoursePage = {
   name: string;
   location: string | null;
@@ -17,7 +10,6 @@ export type CoursePage = {
   par: number | null;
   lengthM: number | null;
   parRating: number | null;
-  holeStats: HoleStats[];
   record: CourseRecord | null;
   usage: CourseUsageMonth[];
   images: string[];
@@ -25,29 +17,13 @@ export type CoursePage = {
 
 const USAGE_MONTHS = 12;
 
-const optionalNumber = z
-  .union([z.number(), z.string()])
-  .nullish()
-  .transform((value) => {
-    const number = Number(value);
-    return value == null || value === "" || !Number.isFinite(number) ? null : number;
-  });
-
-const holeStatsSchema = z.record(
-  z.string(),
-  z
-    .object({
-      AVG: optionalNumber,
-      BOB: optionalNumber,
-      PAR: optionalNumber,
-      BOW: optionalNumber,
-    })
-    .passthrough(),
-);
-
 const usageSeries = z.array(z.tuple([z.number(), z.number()])).nullish();
 const usageSchema = z
-  .object({ Unique: usageSeries, Training: usageSeries, Competition: usageSeries })
+  .object({
+    Unique: usageSeries,
+    Training: usageSeries,
+    Competition: usageSeries,
+  })
   .passthrough();
 
 // Reads the public course page. The Metrix course API needs a personal key, so the page is the only open source.
@@ -56,33 +32,18 @@ export function parseCoursePage(html: string): CoursePage {
   const headerText = toPlainText(header.replace(/<\/li>/g, "\n"));
 
   return {
-    name: toPlainText(html.match(/<h1><a href="\/course\/\d+">(.*?)<\/a>/)?.[1] ?? ""),
+    name: toPlainText(
+      html.match(/<h1><a href="\/course\/\d+">(.*?)<\/a>/)?.[1] ?? "",
+    ),
     location: headerText.match(/Location:\s*([^\n]+)/)?.[1]?.trim() || null,
     baskets: matchNumber(headerText, /Baskets:\s*(\d+)/),
     par: matchNumber(headerText, /Par:\s*(\d+)/),
     lengthM: matchNumber(headerText, /Length:\s*(\d+)\s*m/),
     parRating: matchNumber(headerText, /PAR rating:\s*(\d+)/),
-    holeStats: parseHoleStats(html),
     record: parseRecord(html),
     usage: parseUsage(html),
     images: parseImages(html),
   };
-}
-
-function parseHoleStats(html: string): HoleStats[] {
-  const parsed = holeStatsSchema.safeParse(readJsVariable(html, "chartData2"));
-  if (!parsed.success) {
-    return [];
-  }
-
-  return Object.entries(parsed.data)
-    .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([, hole]) => ({
-      averageScore: hole.AVG,
-      birdiePct: hole.BOB,
-      parPct: hole.PAR,
-      bogeyPct: hole.BOW,
-    }));
 }
 
 function parseUsage(html: string): CourseUsageMonth[] {
@@ -120,7 +81,9 @@ function parseUsage(html: string): CourseUsageMonth[] {
   // Metrix leaves out empty months. Fills them with zero, so each bar is one calendar month.
   const [year, monthNumber] = latest.split("-").map(Number);
   return Array.from({ length: USAGE_MONTHS }, (_, index) => {
-    const key = monthKey(Date.UTC(year!, monthNumber! - USAGE_MONTHS + index, 15));
+    const key = monthKey(
+      Date.UTC(year!, monthNumber! - USAGE_MONTHS + index, 15),
+    );
     return months.get(key) ?? { month: `${key}-01`, players: 0, rounds: 0 };
   });
 }
@@ -140,7 +103,9 @@ function parseRecord(html: string): CourseRecord | null {
     return null;
   }
 
-  const cells = [...row.matchAll(/<td[^>]*>(.*?)<\/td>/gs)].map((cell) => cell[1] ?? "");
+  const cells = [...row.matchAll(/<td[^>]*>(.*?)<\/td>/gs)].map(
+    (cell) => cell[1] ?? "",
+  );
   const player = toPlainText(cells[1] ?? "");
   const link = cells[2]?.match(/href="\/(\d+)">([^<]*)</i);
   const diff = Number(toPlainText(cells.at(-2) ?? ""));
@@ -163,14 +128,20 @@ function parseImages(html: string): string[] {
   const description = between(html, "</header>", "<form") ?? "";
   const sources = [...description.matchAll(/<img[^>]*src="([^"]+)"/gi)]
     .map((match) => match[1] ?? "")
-    .filter((src) => src.startsWith("/img/upload/") || src.startsWith(`${METRIX_URL}/img/upload/`))
+    .filter(
+      (src) =>
+        src.startsWith("/img/upload/") ||
+        src.startsWith(`${METRIX_URL}/img/upload/`),
+    )
     .map((src) => (src.startsWith("/") ? `${METRIX_URL}${src}` : src));
 
   return [...new Set(sources)];
 }
 
 function readJsVariable(html: string, name: string): unknown {
-  const raw = html.match(new RegExp(`var ${name} = JSON\\.parse\\('(.*?)'\\);`))?.[1];
+  const raw = html.match(
+    new RegExp(`var ${name} = JSON\\.parse\\('(.*?)'\\);`),
+  )?.[1];
   if (!raw) {
     return null;
   }

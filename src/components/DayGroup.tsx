@@ -17,13 +17,17 @@ export function DayGroup({ competitions, now, expandedId, onToggle }: Props) {
   }
 
   return (
-    <section aria-label={`${dayLabel(first.startsAt, now)}, ${dayDate(first.startsAt)}`}>
+    <section
+      aria-label={`${dayLabel(first.startsAt, now)}, ${dayDate(first.startsAt)}`}
+    >
       <h3 className="sticky top-[var(--toolbar-h,7.5rem)] z-10 -mx-4 flex items-baseline gap-2.5 bg-background px-4 py-2 sm:-mx-6 sm:px-6">
         <span className="text-base font-semibold">
           {dayLabel(first.startsAt, now)}
         </span>
-        <span className="text-sm text-muted-foreground">{dayDate(first.startsAt)}</span>
-        <span className="ml-auto text-sm text-muted-foreground tabular">
+        <span className="text-sm text-muted-foreground">
+          {dayDate(first.startsAt)}
+        </span>
+        <span className="tabular ml-auto text-sm text-muted-foreground">
           {competitions.length} {competitions.length === 1 ? "round" : "rounds"}
         </span>
       </h3>

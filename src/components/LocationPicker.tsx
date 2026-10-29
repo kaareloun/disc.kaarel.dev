@@ -57,7 +57,10 @@ export function LocationPicker({
     };
   }, [open]);
 
-  const label = locating && !location ? "Locating…" : (locationLabel(location) ?? "Set location");
+  const label =
+    locating && !location
+      ? "Locating…"
+      : (locationLabel(location) ?? "Set location");
 
   return (
     <div ref={rootRef} className="relative">
@@ -68,10 +71,12 @@ export function LocationPicker({
         aria-haspopup="menu"
         className="pressable flex h-10 items-center gap-2 rounded-full border bg-card pl-3 pr-2.5 text-sm font-medium transition-colors hover:border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <MapPin className={cn("size-4 text-primary", locating && "animate-pulse")} />
+        <MapPin
+          className={cn("size-4 text-primary", locating && "animate-pulse")}
+        />
         <span className="max-w-[8rem] truncate">{label}</span>
         {location && (
-          <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs text-muted-foreground tabular">
+          <span className="tabular rounded-full bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
             {radiusKm} km
           </span>
         )}
@@ -128,7 +133,11 @@ export function LocationPicker({
                   type="button"
                   role="menuitem"
                   onClick={() => {
-                    onPick({ lat: place.lat, lon: place.lon, placeName: place.name });
+                    onPick({
+                      lat: place.lat,
+                      lon: place.lon,
+                      placeName: place.name,
+                    });
                     setOpen(false);
                   }}
                   className={cn(

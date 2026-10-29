@@ -3,7 +3,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCompetitionDetails } from "~/hooks/useCompetitionDetails";
 import type { CompetitionWithDistance } from "~/types";
 import { directionsUrl, metrixUrl } from "~/utils/places";
-import { formatDistance, formatTime, roundStatus, startsIn } from "~/utils/time";
+import {
+  formatDistance,
+  formatTime,
+  roundStatus,
+  startsIn,
+} from "~/utils/time";
 import { FlightPath } from "./FlightPath";
 
 type Props = {
@@ -71,10 +76,12 @@ export function NextUp({ competition, now }: Props) {
 
       <div className="mt-3 grid grid-cols-[1fr_auto] items-end gap-4 sm:mt-1">
         <div className="max-w-md">
-          {distance && <FlightPath key={competition.id} label={`${distance} away`} />}
+          {distance && (
+            <FlightPath key={competition.id} label={`${distance} away`} />
+          )}
         </div>
         {distance && (
-          <p className="font-semi-condensed text-right text-4xl font-semibold leading-none tracking-tight tabular sm:text-5xl">
+          <p className="font-semi-condensed tabular text-right text-4xl font-semibold leading-none tracking-tight sm:text-5xl">
             {distance}
           </p>
         )}

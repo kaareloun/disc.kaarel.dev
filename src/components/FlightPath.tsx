@@ -19,14 +19,21 @@ export function FlightPath({ label }: { label: string }) {
       setReduceMotion(true);
       return;
     }
-    const timer = setTimeout(() => flightRef.current?.beginElement(), DELAY_S * 1000);
+    const timer = setTimeout(
+      () => flightRef.current?.beginElement(),
+      DELAY_S * 1000,
+    );
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="relative">
-      <svg viewBox="0 0 300 64" className="h-auto w-full overflow-visible" aria-hidden="true">
+      <svg
+        viewBox="0 0 300 64"
+        className="h-auto w-full overflow-visible"
+        aria-hidden="true"
+      >
         <defs>
           <mask id={maskId}>
             <motion.path
@@ -55,16 +62,33 @@ export function FlightPath({ label }: { label: string }) {
           className="stroke-muted-foreground/70"
         />
         <circle cx="14" cy="50" r="4.5" className="fill-foreground" />
-        <circle cx="14" cy="50" r="9" fill="none" strokeWidth="1.5" className="stroke-foreground/20" />
+        <circle
+          cx="14"
+          cy="50"
+          r="9"
+          fill="none"
+          strokeWidth="1.5"
+          className="stroke-foreground/20"
+        />
 
-        <g transform={`translate(${END.x + 14} ${END.y - 10})`} className="text-foreground/80">
+        <g
+          transform={`translate(${END.x + 14} ${END.y - 10})`}
+          className="text-foreground/80"
+        >
           <path d="M -9 0 h 18 l -2 7 h -14 z" className="fill-current" />
           <path
             d="M -7 7 L -3 22 M 0 7 L 0 22 M 7 7 L 3 22 M -4 7 L -6 22 M 4 7 L 6 22"
             strokeWidth="1"
             className="stroke-current opacity-60"
           />
-          <rect x="-10" y="21" width="20" height="5" rx="1.5" className="fill-current" />
+          <rect
+            x="-10"
+            y="21"
+            width="20"
+            height="5"
+            rx="1.5"
+            className="fill-current"
+          />
           <rect x="-1" y="26" width="2" height="12" className="fill-current" />
         </g>
 
@@ -72,7 +96,9 @@ export function FlightPath({ label }: { label: string }) {
           key={String(reduceMotion)}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.15, delay: DELAY_S }}
+          transition={
+            reduceMotion ? { duration: 0 } : { duration: 0.15, delay: DELAY_S }
+          }
           transform={reduceMotion ? `translate(${END.x} ${END.y})` : undefined}
         >
           {!reduceMotion && (
@@ -89,7 +115,13 @@ export function FlightPath({ label }: { label: string }) {
             />
           )}
           <ellipse rx="9" ry="4.2" className="fill-primary" />
-          <ellipse rx="5.5" ry="2.4" fill="none" strokeWidth="1" className="stroke-primary-foreground/50" />
+          <ellipse
+            rx="5.5"
+            ry="2.4"
+            fill="none"
+            strokeWidth="1"
+            className="stroke-primary-foreground/50"
+          />
         </motion.g>
       </svg>
       <span className="sr-only">{label}</span>

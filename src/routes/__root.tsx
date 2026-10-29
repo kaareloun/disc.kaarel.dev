@@ -100,8 +100,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html className={theme} lang="en">
       <head>
         <HeadContent />
-        <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)" />
+        <meta
+          name="theme-color"
+          content="#fafafa"
+          media="(prefers-color-scheme: light)"
+        />
+        <meta
+          name="theme-color"
+          content="#111113"
+          media="(prefers-color-scheme: dark)"
+        />
       </head>
       <body className="min-h-screen overflow-y-scroll">
         {children}

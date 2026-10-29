@@ -38,7 +38,9 @@ export function CompetitionList({ competitions, now }: Props) {
               competitions={dayCompetitions}
               now={now}
               expandedId={expandedId}
-              onToggle={(id) => setExpandedId((current) => (current === id ? null : id))}
+              onToggle={(id) =>
+                setExpandedId((current) => (current === id ? null : id))
+              }
             />
           </motion.div>
         ))}

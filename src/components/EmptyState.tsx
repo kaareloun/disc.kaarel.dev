@@ -28,12 +28,20 @@ export function EmptyState({ filters, onChange }: Props) {
       </p>
       <div className="flex flex-wrap gap-2">
         {filters.search && (
-          <button type="button" className={buttonClass} onClick={() => onChange({ search: "" })}>
+          <button
+            type="button"
+            className={buttonClass}
+            onClick={() => onChange({ search: "" })}
+          >
             Clear search
           </button>
         )}
         {!filters.search && filters.location && widerRadius && (
-          <button type="button" className={buttonClass} onClick={() => onChange({ radiusKm: widerRadius })}>
+          <button
+            type="button"
+            className={buttonClass}
+            onClick={() => onChange({ radiusKm: widerRadius })}
+          >
             Search within {widerRadius} km
           </button>
         )}

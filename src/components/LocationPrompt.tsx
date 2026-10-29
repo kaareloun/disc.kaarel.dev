@@ -33,7 +33,9 @@ export function LocationPrompt({ locating, onLocate, onPick }: Props) {
           <button
             key={place.name}
             type="button"
-            onClick={() => onPick({ lat: place.lat, lon: place.lon, placeName: place.name })}
+            onClick={() =>
+              onPick({ lat: place.lat, lon: place.lon, placeName: place.name })
+            }
             className="pressable h-9 rounded-full border px-3.5 text-sm font-medium transition-colors hover:bg-muted"
           >
             {place.name}

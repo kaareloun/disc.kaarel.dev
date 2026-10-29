@@ -33,7 +33,10 @@ const detailsResponse = z.object({
 
 const playedHole = z.object({ Result: z.string().min(1) }).passthrough();
 
-const cache = new Map<string, { at: number; ttl: number; details: CompetitionDetails }>();
+const cache = new Map<
+  string,
+  { at: number; ttl: number; details: CompetitionDetails }
+>();
 
 export const getCompetitionDetails = createServerFn({ method: "GET" })
   .validator((id: unknown) => z.string().regex(/^\d+$/).parse(id))
@@ -81,7 +84,9 @@ export const getCompetitionDetails = createServerFn({ method: "GET" })
             console.error(`Course ${courseId} did not load:`, error);
             return null;
           }),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), COURSE_WAIT_MS)),
+          new Promise<null>((resolve) =>
+            setTimeout(() => resolve(null), COURSE_WAIT_MS),
+          ),
         ])
       : null;
 
@@ -92,9 +97,10 @@ export const getCompetitionDetails = createServerFn({ method: "GET" })
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count),
       holes: tracks.length,
-      par: pars.length && pars.every(Number.isFinite)
-        ? pars.reduce((sum, par) => sum + par, 0)
-        : null,
+      par:
+        pars.length && pars.every(Number.isFinite)
+          ? pars.reduce((sum, par) => sum + par, 0)
+          : null,
       comment: toPlainText(Competition.Comment ?? ""),
       courseId,
       leaders,
