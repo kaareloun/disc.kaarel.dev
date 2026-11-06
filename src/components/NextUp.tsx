@@ -63,7 +63,7 @@ export function NextUp({ competition, now }: Props) {
             {competition.seriesName}
           </p>
         )}
-        <h2 className="text-balance text-[1.6rem] font-bold leading-tight tracking-tight sm:text-[2.25rem]">
+        <h2 className="text-balance text-[1.6rem] font-bold leading-tight tracking-tight sm:text-[2.25rem] lg:text-[1.75rem] xl:text-[2rem]">
           {competition.eventName}
         </h2>
         <p className="mt-1.5 text-[0.95rem] text-muted-foreground">

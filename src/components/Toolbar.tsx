@@ -53,10 +53,10 @@ export function Toolbar({ filters, onChange }: Props) {
   return (
     <div
       ref={rootRef}
-      className="z-20 -mx-4 bg-background px-4 py-3 sm:sticky sm:top-0 sm:-mx-6 sm:px-6"
+      className="z-20 -mx-4 bg-background px-4 py-3 sm:sticky sm:top-0 sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:px-0 lg:pb-0 lg:pt-5"
     >
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-        <label className="relative flex h-10 w-full items-center sm:flex-1">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center lg:flex-col lg:items-stretch">
+        <label className="relative flex h-10 w-full items-center sm:flex-1 lg:flex-none">
           <Search className="pointer-events-none absolute left-3.5 size-4 text-muted-foreground" />
           <input
             ref={inputRef}
@@ -97,6 +97,7 @@ export function Toolbar({ filters, onChange }: Props) {
             value={filters.day}
             options={DAY_OPTIONS}
             onChange={(day) => onChange({ day })}
+            className="lg:w-full lg:[&>button]:flex-auto lg:[&>button]:px-2"
           />
         </div>
       </div>

@@ -6,6 +6,7 @@ import { EmptyState } from "~/components/EmptyState";
 import { LocationPrompt } from "~/components/LocationPrompt";
 import { NextUp } from "~/components/NextUp";
 import { Notice } from "~/components/Notice";
+import { SiteFooter } from "~/components/SiteFooter";
 import { SiteHeader } from "~/components/SiteHeader";
 import { Toolbar } from "~/components/Toolbar";
 import {
@@ -125,7 +126,7 @@ function Home() {
   const stale = lastUpdate.diffInHours > FETCH_INTERVAL_IN_HOURS * 3;
 
   return (
-    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16 sm:px-6">
+    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16 sm:px-6 lg:max-w-[80rem] lg:px-8">
       <SiteHeader
         location={filters.location}
         locating={locating}
@@ -148,22 +149,27 @@ function Home() {
       </div>
 
       {filters.location ? (
-        <>
-          <div className="mt-2">
+        <div className="mt-2 lg:grid lg:grid-cols-[24rem_minmax(0,1fr)] lg:items-start lg:gap-10 xl:grid-cols-[27rem_minmax(0,1fr)] xl:gap-16">
+          <div className="contents lg:sticky lg:top-6 lg:block">
             {nextUp && <NextUp competition={nextUp} now={now} />}
+            <div className="mt-4 lg:hidden" />
+            <Toolbar filters={filters} onChange={updateFilters} />
+            <SiteFooter
+              updated={lastUpdate.distance}
+              stale={stale}
+              className="mt-6 hidden px-1 lg:flex"
+            />
           </div>
-          <div className="mt-4" />
-          <Toolbar filters={filters} onChange={updateFilters} />
-          <main className="mt-2">
+          <main className="mt-2 lg:mt-0">
             {visible.length > 0 ? (
               <CompetitionList competitions={visible} now={now} />
             ) : (
               <EmptyState filters={filters} onChange={updateFilters} />
             )}
           </main>
-        </>
+        </div>
       ) : (
-        <div className="mt-2">
+        <div className="mt-2 lg:max-w-2xl">
           <LocationPrompt
             locating={locating}
             onLocate={locate}
@@ -172,22 +178,11 @@ function Home() {
         </div>
       )}
 
-      <footer className="mt-16 flex flex-wrap justify-between gap-2 border-t pt-6 text-sm text-muted-foreground">
-        <span>
-          Data from{" "}
-          <a
-            href="https://discgolfmetrix.com"
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-foreground underline-offset-4 hover:underline"
-          >
-            Disc Golf Metrix
-          </a>
-        </span>
-        <span className={cn(stale && "font-semibold text-destructive")}>
-          Updated {lastUpdate.distance}
-        </span>
-      </footer>
+      <SiteFooter
+        updated={lastUpdate.distance}
+        stale={stale}
+        className={cn("mt-16 border-t pt-6", filters.location && "lg:hidden")}
+      />
     </div>
   );
 }
