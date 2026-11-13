@@ -25,8 +25,19 @@ export function SiteFooter({ updated, stale, className }: Props) {
           Disc Golf Metrix
         </a>
       </span>
-      <span className={cn(stale && "font-semibold text-destructive")}>
-        Updated {updated}
+      <span className="flex flex-wrap items-baseline gap-x-6">
+        <span className={cn(stale && "font-semibold text-destructive")}>
+          Updated {updated}
+        </span>
+        <a
+          href="https://kaarel.dev/?ref=disc"
+          className="text-xs text-muted-foreground/70 transition-colors hover:text-foreground"
+        >
+          Site by{" "}
+          <span className="underline decoration-muted-foreground/30 underline-offset-2">
+            kaarel.dev
+          </span>
+        </a>
       </span>
     </footer>
   );
