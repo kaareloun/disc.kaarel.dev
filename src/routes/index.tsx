@@ -15,7 +15,6 @@ import {
   RADIUS_COOKIE,
 } from "~/constants";
 import { useNow } from "~/hooks/useNow";
-import { cn } from "~/lib/utils";
 import { getCompetitions } from "~/serverFunctions/getCompetitions";
 import { getLastUpdate } from "~/serverFunctions/getLastUpdate";
 import { getPreferences } from "~/serverFunctions/getPreferences";
@@ -126,7 +125,7 @@ function Home() {
   const stale = lastUpdate.diffInHours > FETCH_INTERVAL_IN_HOURS * 3;
 
   return (
-    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16 sm:px-6 lg:max-w-[80rem] lg:px-8">
+    <div className="mx-auto min-h-screen max-w-3xl px-4 pb-16 sm:px-6">
       <SiteHeader
         location={filters.location}
         locating={locating}
@@ -149,27 +148,22 @@ function Home() {
       </div>
 
       {filters.location ? (
-        <div className="mt-2 lg:grid lg:grid-cols-[24rem_minmax(0,1fr)] lg:items-start lg:gap-10 xl:grid-cols-[27rem_minmax(0,1fr)] xl:gap-16">
-          <div className="contents lg:sticky lg:top-6 lg:block">
+        <>
+          <div className="mt-2">
             {nextUp && <NextUp competition={nextUp} now={now} />}
-            <div className="mt-4 lg:hidden" />
-            <Toolbar filters={filters} onChange={updateFilters} />
-            <SiteFooter
-              updated={lastUpdate.distance}
-              stale={stale}
-              className="mt-6 hidden px-1 lg:flex"
-            />
           </div>
-          <main className="mt-2 lg:mt-0">
+          <div className="mt-4" />
+          <Toolbar filters={filters} onChange={updateFilters} />
+          <main className="isolate mt-2">
             {visible.length > 0 ? (
               <CompetitionList competitions={visible} now={now} />
             ) : (
               <EmptyState filters={filters} onChange={updateFilters} />
             )}
           </main>
-        </div>
+        </>
       ) : (
-        <div className="mt-2 lg:max-w-2xl">
+        <div className="mt-2">
           <LocationPrompt
             locating={locating}
             onLocate={locate}
@@ -181,7 +175,7 @@ function Home() {
       <SiteFooter
         updated={lastUpdate.distance}
         stale={stale}
-        className={cn("mt-16 border-t pt-6", filters.location && "lg:hidden")}
+        className="mt-16 border-t pt-6"
       />
     </div>
   );
